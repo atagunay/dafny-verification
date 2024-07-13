@@ -1,0 +1,334 @@
+// Ata Gunay - 23252402 - April 2024 - Maynooth University
+
+// An external method Random that takes a int as input and
+// returns a int value that is less than the input
+method {:extern} RandomInt(n: int) returns (r: int)
+  ensures r < n
+
+// An external method Random that returns a bool value that is true or false
+method {:extern} RandomBool() returns (r: bool)
+  ensures r == true || r == false
+
+// The game class
+class Sumplete {
+
+  // Instance variables
+  var playground: array2<int>
+  var solutionMatrix: array2<bool>
+  var rowSolutions: array<int>
+  var columnSolutions: array<int>
+
+  // A constructor that prints a message when a new object is created
+  constructor ()
+    requires true
+  {
+    print("A new object is created \n");
+    print("These are the methods that you can call... \n");
+    print("1. initializeGame:  \n");
+    print("2. initializePlayground:  \n");
+    print("3. initializeSolutionMatrix:  \n");
+    print("4. solvePuzzle:  \n");
+    print("5. clickCell:  \n");
+    print("6. checkGame:  \n");
+  }
+
+  // A method that initializes the game
+  // Initialize the playground and calculate the solutions
+  method initializeGame(rowPreferences: int, columnPreferences: int) returns (playerBoard: array2<int>)
+    requires rowPreferences > 0 && columnPreferences > 0 // The row and column preferences must be greater than 0
+    requires rowPreferences == columnPreferences // The game board must be a square
+    ensures playground.Length0 == rowPreferences // Initializing should done correctly
+    ensures playground.Length1 == columnPreferences // Initializing should done correctly
+    ensures rowSolutions.Length == rowPreferences // The row solutions must be equal to the row preferences
+    ensures columnSolutions.Length == columnPreferences // The column solutions must be equal to the column preferences
+    ensures playerBoard.Length0 > 0 && playerBoard.Length1 > 0 // The player board must be greater than 0
+    ensures playerBoard.Length1 == columnSolutions.Length && playerBoard.Length0 == rowSolutions.Length // The soolutions must be equal to the board
+    ensures playerBoard.Length0 == playground.Length0
+    ensures playerBoard.Length1 == playground.Length1
+    modifies this // The instance variables are modified
+  {
+    // The game board
+    playground := initializePlayground(rowPreferences, columnPreferences);
+
+    playerBoard := playground;
+
+    // The player board
+    // Effected by player's input
+    //playerBoard := playground;
+
+    // The result board bool[][]
+    // 1: The cell must exist
+    // 0: The cell must not be exist
+    solutionMatrix := initializeSolutionMatrix(rowPreferences, columnPreferences);
+
+    // The row and column results
+    rowSolutions, columnSolutions := solvePuzzle(playground, solutionMatrix);
+  }
+
+  // A method that initializes a 2D array with random int values
+  // Fill the playground with random int values
+  // Random values are less than 10 because of the easy gameplay
+  method initializePlayground(row: int, column: int) returns (playground: array2<int>)
+    requires row > 0 && column > 0 // The row and column preferences must be greater than 0
+    requires column == row // The game board must be a square
+    ensures playground.Length0 == row // Initializing should done correctly
+    ensures playground.Length1 == column // Initializing should done correctly
+    // ensures forall i :: 0 <= i < row ==> forall j :: 0 <= j < column ==> matrix[i, j] < 10
+  {
+    playground := new int[row, column];
+
+    for i := 0 to playground.Length0 // row
+    {
+      for j := 0 to playground.Length1 // column
+        invariant forall k :: 0 <= k < j ==> playground[i, k] < 10
+      {
+        // Random int values less than 10
+        playground[i, j] := RandomInt(10);
+      }
+    }
+  }
+
+  // A method that initializes a 2D array with random bool values
+  // Select random cells for the solution matrix
+  // Selected random cells should not delete by the player
+  // Sum of the cels that hold true values refers to the solutions
+  method initializeSolutionMatrix(row: int, column: int) returns (solution: array2<bool>)
+    requires row > 0 && column > 0 // The row and column preferences must be greater than 0
+    requires column == row // The game board must be a square
+    ensures solution.Length0 == row && solution.Length1 == column // Initializing should done correctly
+    ensures forall i :: 0 <= i < row ==> forall j :: 0 <= j < column ==> solution[i, j] == true || solution[i, j] == false // All cells must be true or false
+  {
+    solution := new bool[row, column];
+
+    for i := 0 to solution.Length0
+    {
+      for j := 0 to solution.Length1
+        invariant forall k :: 0 <= k < j ==> solution[i, k] == true || solution[i, k] == false
+      {
+        // Random bool values
+        solution[i, j] := RandomBool();
+      }
+    }
+  }
+
+  // Solve the puzzle generated by the
+  method solvePuzzle(playground: array2<int>, solutionMatrix: array2<bool>) returns (rowSolutions: array<int>, columnSolutions: array<int>)
+    requires playground.Length0 > 0 && playground.Length1 > 0 // The lenght of the playground must be greater than 0
+    requires solutionMatrix.Length0 > 0 && solutionMatrix.Length1 > 0 // The lenght of the solution matrix must be greater than 0
+    requires solutionMatrix.Length0 == playground.Length0 && solutionMatrix.Length1 == playground.Length1 // The lenght of the solution matrix and playground must be equal
+    ensures rowSolutions.Length == playground.Length0 && columnSolutions.Length == playground.Length1 // The lenght of the row and column solutions must be equal to the playground
+  {
+    rowSolutions := new int[playground.Length0];
+    columnSolutions := new int[playground.Length1];
+
+    // Row results calculation
+    // Iterate each row and if the cell is selected, add the value to the rowSolutions
+    for i := 0 to playground.Length0 // row
+    {
+      for j := 0 to playground.Length1 // column
+      {
+        // i: row, j: column
+        if solutionMatrix[i, j] == true
+        {
+          rowSolutions[i] := rowSolutions[i] + playground[i, j];
+        }
+      }
+    }
+
+    // Column results calculation
+    // Iterate each column and if the cell is selected, add the value to the columnSolutions
+    for i := 0 to playground.Length1 // Column
+    {
+      for j := 0 to playground.Length0 // Row
+      {
+        // j: row, i: column
+        if solutionMatrix[j, i] == true
+        {
+          columnSolutions[i] := columnSolutions[i] + playground[j, i];
+        }
+      }
+    }
+  }
+
+  // Function that sums the whole row
+  function sumWholeRow( a:array2<int>, n:int, column:int ) : int
+    requires 0 <= n && n <= a.Length0 // The n must be between 0 and the length of the array
+    requires 0 <= column && column < a.Length1 // The column must be between 0 and the length of the array
+    decreases n // Decrease the n
+    reads a // Read the array
+  {
+    // Column is fixed
+    if (n == 0) then 0 else sumWholeRow(a, n-1, column) + a[n-1, column]
+  }
+
+  // Function that sums the whole column
+  function sumWholeColumn( a:array2<int>, n:int, row:int ) : int
+    requires 0 <= n && n <= a.Length1 // The n must be between 0 and the length of the array
+    requires 0 <= row && row < a.Length0 // The row must be between 0 and the length of the array
+    decreases n // Decrease the n
+    reads a // Read the array
+  {
+    // Row is fixed
+    if (n == 0) then 0 else sumWholeRow(a, row, n-1) + a[row, n-1]
+  }
+
+  // Calculate the result of the player's selections
+  // Calculation is done on the playerBoard (player's selections) not on the playground
+  method sumPlayerRows(playerBoard: array2<int>) returns (rowSums: array<int>)
+    requires playerBoard.Length0 > 0 && playerBoard.Length1 > 0 // The player board must be greater than 0
+    requires playerBoard.Length0 == playerBoard.Length1 // The player board must be a square
+    ensures rowSums.Length == playerBoard.Length0 // The rowSums must be equal to the player board's row length
+    // The rowSums must be equal to the sum of the whole row
+    ensures forall i :: 0 <= i <  playerBoard.Length1 ==> rowSums[i] == sumWholeRow(playerBoard, playerBoard.Length0, i)
+  {
+
+    rowSums := new int[playerBoard.Length0];
+
+    for i := 0 to playerBoard.Length1
+      invariant forall j :: 0 <= j < i ==> rowSums[j] == sumWholeRow(playerBoard, playerBoard.Length0, j)
+    {
+      rowSums[i] := sumWholeRow(playerBoard, playerBoard.Length0, i);
+    }
+  }
+
+  // Calculate the result of the player's selections
+  // Calculation is done on the playerBoard (player's selections) not on the playground
+  method sumPlayerColumns(playerBoard: array2<int>) returns (columnSums: array<int>)
+    requires playerBoard.Length0 > 0 && playerBoard.Length1 > 0 // The player board must be greater than 0
+    requires playerBoard.Length0 == playerBoard.Length1 // The player board must be a square
+    ensures columnSums.Length == playerBoard.Length0 // The columnSums must be equal to the player board's column length
+    // The columnSums must be equal to the sum of the whole column
+    ensures forall i :: 0 <= i <  playerBoard.Length0 ==> columnSums[i] == sumWholeColumn(playerBoard, playerBoard.Length0, i)
+  {
+
+    columnSums := new int[playerBoard.Length0];
+
+    for i := 0 to playerBoard.Length0
+      invariant forall j :: 0 <= j < i ==> columnSums[j] == sumWholeColumn(playerBoard, playerBoard.Length0, j)
+    {
+      columnSums[i] := sumWholeColumn(playerBoard, playerBoard.Length0, i);
+    }
+  }
+
+  // A method that allows the player to click a cell
+  // If the cell is zero, the value will be old value
+  // If the cell is not zero, the value will be zero
+  method clickCell(row: int, column: int, playerBoard: array2<int>)
+    modifies playerBoard // The player board is modified
+    requires row >= 0 // The row must be greater than or equal to 0
+    requires column >= 0 // The column must be greater than or equal to 0
+    requires row < playerBoard.Length0 // The row must be less than the player board's row length
+    requires column < playerBoard.Length1 // The column must be less than the playground's column length
+    //requires playerBoard.Length0 == playground.Length0
+    //requires playerBoard.Length1 == playground.Length1
+    requires column < playground.Length1 // The column must be less than the player board's column length
+    requires row < playground.Length0 // The row must be less than the playground's row length
+    ensures old(playerBoard[row, column]) != 0 ==> playerBoard[row, column] == 0 // If the cell is not zero, the value will be zero
+    //ensures old(playerBoard[row, column]) == 0 ==> playerBoard[row, column] == playground[row, column] // If the cell is zero, the value will be old value
+  {
+
+    if playerBoard[row, column] != 0
+    {
+      playerBoard[row, column] := 0;
+    }
+    else
+    {
+      playerBoard[row, column] := 3;
+    }
+
+  }
+
+  // Check the game is it finished or not
+  // If the player's results are equal to the solutions, the game is finished
+  method checkGame(playerBoard: array2<int>) returns (result: bool)
+    requires playerBoard.Length0 > 0 && playerBoard.Length1 > 0 // The player board must be greater than 0
+    requires rowSolutions.Length > 0 && columnSolutions.Length > 0 // The row and column solutions must be greater than 0
+    requires playerBoard.Length0 == rowSolutions.Length && playerBoard.Length1 == columnSolutions.Length // The player board and solutions must be equal
+    requires playerBoard.Length0 == playerBoard.Length1 // The player board must be a square
+    ensures result == true || result == false // The result must be true or false
+  {
+    result := true;
+    var playerRowResults := new int[playerBoard.Length0];
+    var playerColumnResults := new int[playerBoard.Length0];
+
+    playerRowResults := sumPlayerRows(playerBoard); // Calculate the player's row results
+    playerColumnResults := sumPlayerColumns(playerBoard); // Calculate the player's column results
+
+    for i := 0 to playerRowResults.Length
+      invariant forall j :: 0 <= j < i ==> playerRowResults[j] == sumWholeRow(playerBoard, playerBoard.Length0, j)
+    {
+      if playerRowResults[i] != this.rowSolutions[i]
+      {
+        result := false;
+      }
+    }
+
+    for i := 0 to playerColumnResults.Length
+      invariant forall j :: 0 <= j < i ==> playerColumnResults[j] == sumWholeColumn(playerBoard, playerBoard.Length0, j)
+    {
+      if playerColumnResults[i] != this.columnSolutions[i]
+      {
+        result := false;
+      }
+    }
+
+  }
+}
+
+method test ()
+{
+  // Create a new object
+  var q := new Sumplete();
+
+  // Initialize the game
+  var playerBoard := q.initializeGame(3, 3);
+  assert playerBoard.Length0 == q.playground.Length0;
+
+  //Control the instance variables
+  assert q.rowSolutions.Length != 0 && q.columnSolutions.Length != 0;
+  assert q.playground.Length0 != 0 && q.playground.Length1 != 0;
+
+  //Check the game is finished or not
+  var isFinished := q.checkGame(playerBoard);
+  print(isFinished);
+  assert isFinished == true || isFinished == false;
+
+  // Click a cell
+  //var a := q.clickCell(0, 0, playerBoard);
+
+}
+
+
+function F(x: int): int
+
+ghost function Sum0(lo: int, hi: int): int
+requires lo <= hi
+decreases hi - lo
+{
+  
+ if lo == hi then 0 else F(lo) + Sum0(lo + 1, hi)
+}
+
+ghost function Sum1(lo: int, hi: int): int
+requires lo <= hi
+decreases hi - lo
+{
+ if lo == hi then 0 else
+Sum1(lo, hi - 1) + F(hi - 1)
+}
+
+lemma Sum2(lo: int, hi: int)
+requires lo <= hi
+decreases hi - lo
+ensures lo != hi ==> F(lo) + Sum0(lo + 1, hi) == Sum1(lo, hi)
+{
+  if lo != hi {
+  PrependSumDown(lo, hi);
+  }
+}
+
+lemma PrependSumDown(lo: int, hi: int)
+ requires lo < hi
+ ensures F(lo) + Sum0(lo + 1, hi) == Sum1(lo, hi)
+ decreases hi - lo
+
