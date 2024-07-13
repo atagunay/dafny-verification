@@ -1,14 +1,9 @@
-# CS603 Sumplete Game Project Report - Ata Gunay
-
 ## Program Design
 
 The game is designed as a class:
 
 ###  Class Diagram
 
-Note: Mermaid is a JavaScript-based diagramming and charting tool that renders Markdown-inspired text definitions to create and modify diagrams dynamically. If you can't see the class diagram you may need to install the Mermaid extension to your editor
-
-For more information: https://mermaid.js.org/
 
 ```mermaid
 classDiagram
