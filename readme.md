@@ -49,7 +49,8 @@ classDiagram
 * Program can store the row and column results in the last row and column of the playground. At the moment, it uses different arrays to store the these values. Thus, it uses more memory during the execution of the programme.
 
 
-### Advantages
+### Advantages
+
 
 * The programme uses different arrays to store the row and column results. This hits the separation of concerns design. Separation of concerns results in more degrees of freedom for some aspect of the program's design, deployment, or usage. These data structures may used for different puposes.
 
